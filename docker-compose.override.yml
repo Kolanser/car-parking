@@ -1,0 +1,25 @@
+services:
+  db:
+    ports:
+      - "5432:5432"
+
+  web:
+    build:
+      context: .
+      target: develop
+    volumes:
+      - .:/project
+    ports:
+      - "8000:8000"
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@mail.com
+      PGADMIN_DEFAULT_PASSWORD: adminpassword
+      VIRTUAL_HOST: pgadmin.car-parking.localhost
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+
+volumes:
+  pgadmin:
