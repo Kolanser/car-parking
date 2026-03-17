@@ -1,10 +1,6 @@
-from django.db import models
 from rest_framework import serializers
 
-
-class Direction(models.TextChoices):
-    IN = "in", "Въезд"
-    OUT = "out", "Выезд"
+from parking.models import Direction
 
 
 class ParkingEventSerializer(serializers.Serializer):

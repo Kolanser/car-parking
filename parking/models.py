@@ -1,6 +1,11 @@
 from django.db import models
 
 
+class Direction(models.TextChoices):
+    IN = "in", "Въезд"
+    OUT = "out", "Выезд"
+
+
 class TimestampMixin(models.Model):
     created_at = models.DateTimeField("дата создания", auto_now_add=True)
     updated_at = models.DateTimeField("дата обновления", auto_now=True)

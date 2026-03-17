@@ -3,9 +3,9 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from parking.models import CarClient, Parking, ParkingControl
+from parking.models import CarClient, Parking, ParkingControl, Direction
 
-from .serializers import Direction, ParkingEventSerializer
+from .serializers import ParkingEventSerializer
 
 
 class ParkingEventView(APIView):
