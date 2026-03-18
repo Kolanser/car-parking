@@ -137,7 +137,7 @@ class ParkingEventEntryTest(APITestCase):
 class ParkingControlListTest(APITestCase):
     def setUp(self):
         self.parking = ParkingFactory()
-        self.url = reverse("parking-sessions", kwargs={"parking_id": self.parking.pk})
+        self.url = reverse("parking-control-list", kwargs={"parking_id": self.parking.pk})
 
     def test_returns_only_sessions_for_parking(self):
         ParkingControlFactory.create_batch(2, parking=self.parking)
