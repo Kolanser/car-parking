@@ -2,13 +2,55 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from parking.models import ParkingControl
+from parking.models import CarClient, ParkingControl
 
 from .factories import CarClientFactory, ParkingControlFactory, ParkingFactory
 
 
 def event_url(parking_id):
     return reverse("parking-event", kwargs={"parking_id": parking_id})
+
+
+class ParkingListTest(APITestCase):
+    def test_returns_all_parkings(self):
+        ParkingFactory.create_batch(3)
+        response = self.client.get(reverse("parking-list"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 3)
+
+    def test_response_fields(self):
+        parking = ParkingFactory(address="ул. Пушкина, д. 1", capacity=10)
+        response = self.client.get(reverse("parking-list"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        item = next(p for p in response.data if p["id"] == parking.pk)
+        self.assertEqual(item["address"], "ул. Пушкина, д. 1")
+        self.assertEqual(item["capacity"], 10)
+
+
+class CarClientCreateTest(APITestCase):
+    def setUp(self):
+        self.url = reverse("car-client-create")
+
+    def test_creates_car_client_with_parkings(self):
+        parking = ParkingFactory()
+        response = self.client.post(self.url, {"vehicle_plate": "В123АА77", "parkings": [parking.pk]})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        car = CarClient.objects.get(vehicle_plate="В123АА77")
+        self.assertIn(parking, car.parkings.all())
+
+    def test_creates_car_client_without_parkings(self):
+        response = self.client.post(self.url, {"vehicle_plate": "С456ВВ77", "parkings": []})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(CarClient.objects.filter(vehicle_plate="С456ВВ77").exists())
+
+    def test_duplicate_plate_returns_400(self):
+        CarClientFactory(vehicle_plate="Е789ОО77")
+        response = self.client.post(self.url, {"vehicle_plate": "Е789ОО77", "parkings": []})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_invalid_parking_id_returns_400(self):
+        response = self.client.post(self.url, {"vehicle_plate": "К000КК77", "parkings": [9999]})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 class ParkingEventEntryTest(APITestCase):

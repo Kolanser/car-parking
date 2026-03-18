@@ -1,11 +1,21 @@
 from django.utils import timezone
-from rest_framework import status
+from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from parking.models import CarClient, Parking, ParkingControl, Direction
+from parking.models import CarClient, Direction, Parking, ParkingControl
 
-from .serializers import ParkingEventSerializer
+from .serializers import CarClientSerializer, ParkingEventSerializer, ParkingSerializer
+
+
+class ParkingListView(generics.ListAPIView):
+    queryset = Parking.objects.all()
+    serializer_class = ParkingSerializer
+
+
+class CarClientCreateView(generics.CreateAPIView):
+    queryset = CarClient.objects.all()
+    serializer_class = CarClientSerializer
 
 
 class ParkingEventView(APIView):
