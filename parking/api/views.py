@@ -5,12 +5,19 @@ from rest_framework.views import APIView
 
 from parking.models import CarClient, Direction, Parking, ParkingControl
 
-from .serializers import CarClientSerializer, ParkingEventSerializer, ParkingSerializer
+from .serializers import CarClientSerializer, ParkingControlSerializer, ParkingEventSerializer, ParkingSerializer
 
 
 class ParkingListView(generics.ListAPIView):
     queryset = Parking.objects.all()
     serializer_class = ParkingSerializer
+
+
+class ParkingControlListView(generics.ListAPIView):
+    serializer_class = ParkingControlSerializer
+
+    def get_queryset(self):
+        return ParkingControl.objects.filter(parking_id=self.kwargs["parking_id"]).select_related("car_client")
 
 
 class CarClientCreateView(generics.CreateAPIView):

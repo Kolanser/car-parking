@@ -134,6 +134,30 @@ class ParkingEventEntryTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
+class ParkingControlListTest(APITestCase):
+    def setUp(self):
+        self.parking = ParkingFactory()
+        self.url = reverse("parking-sessions", kwargs={"parking_id": self.parking.pk})
+
+    def test_returns_only_sessions_for_parking(self):
+        ParkingControlFactory.create_batch(2, parking=self.parking)
+        ParkingControlFactory()  # другая парковка
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+
+    def test_response_fields(self):
+        car = CarClientFactory(vehicle_plate="Т001ЕС77")
+        ParkingControlFactory(car_client=car, parking=self.parking, brand="Toyota", model="Camry")
+        response = self.client.get(self.url)
+        item = response.data[0]
+        self.assertEqual(item["vehicle_plate"], "Т001ЕС77")
+        self.assertEqual(item["brand"], "Toyota")
+        self.assertEqual(item["model"], "Camry")
+        self.assertIn("entered_at", item)
+        self.assertIn("exited_at", item)
+
+
 class ParkingEventExitTest(APITestCase):
     def setUp(self):
         self.parking = ParkingFactory()
