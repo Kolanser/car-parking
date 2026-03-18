@@ -18,6 +18,22 @@ class CarClientCreateView(generics.CreateAPIView):
     serializer_class = CarClientSerializer
 
 
+class CarClientUpdateView(APIView):
+    def put(self, request):
+        plate = request.data.get("plate")
+        created = False
+        parkings = request.data.get("parkings", [])
+        try:
+            car = CarClient.objects.get(vehicle_plate=plate)
+        except CarClient.DoesNotExist:
+            car = None
+            created = True
+        serializer = CarClientSerializer(car, data={"vehicle_plate": plate, "parkings": parkings})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+
+
 class ParkingEventView(APIView):
     def post(self, request, parking_id):
         try:

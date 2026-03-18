@@ -53,6 +53,41 @@ class CarClientCreateTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
+class CarClientUpdateTest(APITestCase):
+    def setUp(self):
+        self.url = reverse("car-client-upsert")
+        self.parking = ParkingFactory()
+
+    def _put(self, plate, parkings):
+        return self.client.put(self.url, {"plate": plate, "parkings": parkings}, format="json")
+
+    def test_creates_new_car(self):
+        response = self._put("А001АА77", [self.parking.pk])
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(CarClient.objects.filter(vehicle_plate="А001АА77").exists())
+
+    def test_updates_existing_car(self):
+        car = CarClientFactory(vehicle_plate="А002АА77")
+        response = self._put("А002АА77", [self.parking.pk])
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertCountEqual(car.parkings.values_list("pk", flat=True), [self.parking.pk])
+
+    def test_clears_parkings(self):
+        car = CarClientFactory(vehicle_plate="А003АА77")
+        car.parkings.add(self.parking)
+        response = self._put("А003АА77", [])
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(car.parkings.count(), 0)
+
+    def test_empty_plate_returns_400(self):
+        response = self._put("", [])
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_invalid_parking_id_returns_400(self):
+        response = self._put("А004АА77", [9999])
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
 class ParkingEventEntryTest(APITestCase):
     def setUp(self):
         self.parking = ParkingFactory(capacity=2)

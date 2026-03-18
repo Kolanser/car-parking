@@ -22,3 +22,9 @@ class CarClientSerializer(serializers.ModelSerializer):
     class Meta:
         model = CarClient
         fields = ["id", "vehicle_plate", "parkings"]
+
+    def update(self, instance, validated_data):
+        parkings = validated_data.pop("parkings", [])
+        instance = super().update(instance, validated_data)
+        instance.parkings.set(parkings)
+        return instance
